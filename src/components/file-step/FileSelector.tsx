@@ -4,7 +4,7 @@ import { useLocale } from '../../locale/LocaleContext';
 
 import './FileSelector.scss';
 
-export const FileSelector: React.FC<{ onSelected: (file: File) => void }> = ({
+export const FileSelector: React.FC<{ onSelected: (file: File[]) => void }> = ({
   onSelected
 }) => {
   const onSelectedRef = useRef(onSelected);
@@ -16,7 +16,12 @@ export const FileSelector: React.FC<{ onSelected: (file: File) => void }> = ({
       return;
     }
 
-    const file = acceptedFiles[0];
+    if (acceptedFiles.length > 1) {
+      // console.log("Loaded multiple files.");
+      // return;
+    }
+
+    const file = acceptedFiles;
     onSelectedRef.current(file);
   }, []);
 

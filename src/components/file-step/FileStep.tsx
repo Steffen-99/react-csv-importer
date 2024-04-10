@@ -20,19 +20,25 @@ export interface FileStepState extends PreviewReport {
   hasHeaders: boolean;
 }
 
+
 export const FileStep: React.FC<{
   customConfig: CustomizablePapaParseConfig;
   defaultNoHeader?: boolean;
   prevState: FileStepState | null;
-  onChange: (state: FileStepState | null) => void;
+  nextFile: File | null;
+  noVerify: boolean;
+  onChange: (state: FileStepState | null, remainingFiles: File[] | null) => void;
   onAccept: () => void;
-}> = ({ customConfig, defaultNoHeader, prevState, onChange, onAccept }) => {
+}> = ({ customConfig, defaultNoHeader, prevState, nextFile, noVerify, onChange, onAccept }) => {
   const l10n = useLocale('fileStep');
 
   // seed from previous state as needed
   const [selectedFile, setSelectedFile] = useState<File | null>(
-    prevState ? prevState.file : null
+    prevState ? prevState.file : (nextFile ? nextFile : null)
   );
+
+  const remainingFiles = useRef<File[] | null>(null);
+
 
   const [preview, setPreview] = useState<PreviewResults | null>(
     () =>
@@ -62,10 +68,11 @@ export const FileStep: React.FC<{
   useEffect(() => {
     onChangeRef.current(
       preview && !preview.parseError
-        ? { ...preview, papaParseConfig, hasHeaders }
-        : null
+        ? { ...preview, papaParseConfig, hasHeaders}
+        : null,
+        remainingFiles.current
     );
-  }, [preview, papaParseConfig, hasHeaders]);
+  }, [preview, papaParseConfig, hasHeaders, remainingFiles]);
 
   // perform async preview parse once for the given file
   const asyncLockRef = useRef<number>(0);
@@ -87,6 +94,7 @@ export const FileStep: React.FC<{
     const config = customConfigRef.current;
 
     // kick off the preview parse
+
     parsePreview(selectedFile, config).then((results) => {
       // ignore if stale
       if (oplock !== asyncLockRef.current) {
@@ -104,6 +112,8 @@ export const FileStep: React.FC<{
           : !defaultNoHeaderRef.current && !results.isSingleLine
       );
     });
+
+    
 
     return () => {
       // invalidate current oplock on change or unmount
@@ -170,28 +180,43 @@ export const FileStep: React.FC<{
   }, [preview, hasHeaders, l10n]);
 
   if (!selectedFile) {
-    return <FileSelector onSelected={(file) => setSelectedFile(file)} />;
+    return <FileSelector onSelected={
+      (files) => {
+        setSelectedFile(files[0]);
+        if(files.length > 1){
+          remainingFiles.current = files.slice(1);
+        }else{
+          remainingFiles.current = null;
+        }
+        
+      }
+    } />
   }
 
-  return (
-    <ImporterFrame
-      fileName={selectedFile.name}
-      nextDisabled={!preview || !!preview.parseError || !!preview.parseWarning}
-      onNext={() => {
-        if (!preview || preview.parseError) {
-          throw new Error('unexpected missing preview info');
-        }
+  if(!noVerify){
+    return (
+      <ImporterFrame
+        fileName={selectedFile.name}
+        nextDisabled={!preview || !!preview.parseError || !!preview.parseWarning}
+        onNext={() => {
+          if (!preview || preview.parseError) {
+            throw new Error('unexpected missing preview info');
+          }
+          onAccept();
+        }}
+        onCancel={() => setSelectedFile(null)}
+        nextLabel={l10n.nextButton}
+      >
+        {reportBlock || (
+          <div className="CSVImporter_FileStep__mainPendingBlock">
+            {l10n.previewLoadingStatus}
+          </div>
+        )}
+      </ImporterFrame>
+    );
+  }else{
+    onAccept();
+    return null
+  }
 
-        onAccept();
-      }}
-      onCancel={() => setSelectedFile(null)}
-      nextLabel={l10n.nextButton}
-    >
-      {reportBlock || (
-        <div className="CSVImporter_FileStep__mainPendingBlock">
-          {l10n.previewLoadingStatus}
-        </div>
-      )}
-    </ImporterFrame>
-  );
 };

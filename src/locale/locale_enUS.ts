@@ -52,7 +52,9 @@ export const enUS: ImporterLocale = {
 
   progressStep: {
     stepSubtitle: 'Import',
+    importAllButton: 'Upload the Rest',
     uploadMoreButton: 'Upload More',
+    uploadNextButton: 'Upload Next',
     finishButton: 'Finish',
     statusError: 'Could not import',
     statusComplete: 'Complete',

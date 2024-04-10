@@ -25,17 +25,23 @@ export function ProgressDisplay<Row extends BaseRow>({
   fileState,
   fieldsState,
   externalPreview,
+  noVerify,
+  multipleFiles,
   dataHandler,
   onStart,
   onComplete,
   onRestart,
+  onImportAll,
   onClose
 }: React.PropsWithChildren<{
   fileState: FileStepState;
   fieldsState: FieldsStepState;
   externalPreview: ImporterFilePreview;
+  noVerify: boolean;
+  multipleFiles : boolean;
   dataHandler: ParseCallback<Row>;
   onStart?: (info: ImportInfo) => void;
+  onImportAll?: () => void;
   onComplete?: (info: ImportInfo) => void;
   onRestart?: () => void;
   onClose?: (info: ImportInfo) => void;
@@ -106,6 +112,9 @@ export function ProgressDisplay<Row extends BaseRow>({
       onCompleteRef.current(importInfo);
     }
   }, [importInfo, isComplete]);
+
+  // if "Upload the Rest" was pressed
+  const noPreview = useRef<boolean>(false);
 
   // ensure status gets focus when complete, in case status role is not read out
   const statusRef = useRef<HTMLDivElement>(null);
@@ -183,14 +192,28 @@ export function ProgressDisplay<Row extends BaseRow>({
   }, [estimatedRowCount, progressCount, isComplete]);
 
   const l10n = useLocale('progressStep');
+  var nextButton = "";
+  if(multipleFiles){
+    nextButton = l10n.uploadNextButton
+  }else{
+    nextButton = l10n.uploadMoreButton
+  }
 
-  return (
+  if(isComplete && noVerify){
+    onRestart ? onRestart() : null;
+    return <></>;
+  }
+  else{
+    return (
     <ImporterFrame
       fileName={fileState.file.name}
       subtitle={l10n.stepSubtitle}
       error={error && (error.message || String(error))}
       secondaryDisabled={!isComplete || isDismissed}
-      secondaryLabel={onRestart && onClose ? l10n.uploadMoreButton : undefined}
+      importAllLabel = {multipleFiles ? l10n.importAllButton : undefined}
+      importAllDisabled={!isComplete || isDismissed}
+      onImportAll = {onImportAll}
+      secondaryLabel={ onRestart && onClose ? nextButton : undefined}
       onSecondary={onRestart && onClose ? onRestart : undefined}
       nextDisabled={!isComplete || isDismissed}
       nextLabel={
@@ -216,6 +239,7 @@ export function ProgressDisplay<Row extends BaseRow>({
           >
             {error ? l10n.statusError : l10n.statusComplete}
           </div>
+            
         ) : (
           <div
             className="CSVImporter_ProgressDisplay__status -pending"
@@ -235,7 +259,9 @@ export function ProgressDisplay<Row extends BaseRow>({
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
+        
       </div>
     </ImporterFrame>
-  );
+    );
+  }
 }

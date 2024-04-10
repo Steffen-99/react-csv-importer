@@ -64,6 +64,7 @@ export type ImporterProps<Row extends BaseRow> = ImporterDataHandlerProps<
   onStart?: (info: ImportInfo) => void;
   onComplete?: (info: ImportInfo) => void;
   onClose?: (info: ImportInfo) => void;
+  onImportAll?: () => void;
   children?: ImporterContentRenderProp | React.ReactNode;
   locale?: ImporterLocale;
 } & CustomizablePapaParseConfig;

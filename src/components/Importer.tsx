@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 
-import { BaseRow } from '../parser';
+import { BaseRow, parsePreview } from '../parser';
 import { FileStep, FileStepState } from './file-step/FileStep';
 import { generatePreviewColumns } from './fields-step/ColumnPreview';
 import { FieldsStep, FieldsStepState } from './fields-step/FieldsStep';
@@ -28,6 +28,7 @@ export function Importer<Row extends BaseRow>(
     displayColumnPageSize,
     onStart,
     onComplete,
+    onImportAll,
     onClose,
     children: content,
     locale: userLocale,
@@ -43,10 +44,15 @@ export function Importer<Row extends BaseRow>(
   const [fieldsState, setFieldsState] = useState<FieldsStepState | null>(null);
   const [fieldsAccepted, setFieldsAccepted] = useState<boolean>(false);
 
-  // reset field assignments when file changes
+  const remainingFiles = useRef<File[] | null>(null);
+
+  // do not ask to set colums if the "Upload the Rest" button was pressed
+  const noVerify = useRef<boolean>(false);
+
+  // reset field assignments when file changes, but not in "Upload the Rest" mode
   const activeFile = fileState && fileState.file;
   useEffect(() => {
-    if (activeFile) {
+    if (activeFile && !noVerify) {
       setFieldsState(null);
     }
   }, [activeFile]);
@@ -78,8 +84,11 @@ export function Importer<Row extends BaseRow>(
             customConfig={customPapaParseConfig}
             defaultNoHeader={defaultNoHeader ?? assumeNoHeaders}
             prevState={fileState}
-            onChange={(parsedPreview) => {
+            nextFile={remainingFiles.current ? remainingFiles.current[0] : null}
+            noVerify={noVerify.current}
+            onChange={(parsedPreview, remFiles) => {
               setFileState(parsedPreview);
+              remFiles ? remainingFiles.current = remFiles : null
             }}
             onAccept={() => {
               setFileAccepted(true);
@@ -90,7 +99,7 @@ export function Importer<Row extends BaseRow>(
     );
   }
 
-  if (!fieldsAccepted || fieldsState === null) {
+  if ((!fieldsAccepted || fieldsState === null) && noVerify.current === false) {
     return (
       <LocaleContext.Provider value={locale}>
         <div className="CSVImporter_Importer">
@@ -133,6 +142,8 @@ export function Importer<Row extends BaseRow>(
           fileState={fileState}
           fieldsState={fieldsState}
           externalPreview={externalPreview}
+          multipleFiles={remainingFiles.current ? true : false}
+          noVerify={noVerify.current}
           // @todo remove assertion after upgrading to TS 4.1+
           dataHandler={dataHandler ?? processChunk!} // eslint-disable-line @typescript-eslint/no-non-null-assertion
           onStart={onStart}
@@ -140,13 +151,33 @@ export function Importer<Row extends BaseRow>(
             restartable
               ? () => {
                   // reset all state
+                  if(remainingFiles.current){
+                    remainingFiles.current = remainingFiles.current.splice(1);
+                    if(remainingFiles.current.length === 0){
+                      remainingFiles.current = null;
+                      noVerify.current = false;
+                    }
+                  }
+                  
                   setFileState(null);
                   setFileAccepted(false);
-                  setFieldsState(null);
+                  noVerify.current === true ? null : setFieldsState(null);
                   setFieldsAccepted(false);
                 }
               : undefined
           }
+          onImportAll={() => {
+            noVerify.current = true;
+            if(remainingFiles.current){
+              remainingFiles.current = remainingFiles.current.splice(1);
+              remainingFiles.current.length == 0 ? remainingFiles.current = null : null;
+            }
+            
+            setFileState(null);
+            setFileAccepted(false);
+            noVerify.current === true ? null : setFieldsState(null);
+            setFieldsAccepted(false);
+          }}
           onComplete={onComplete}
           onClose={onClose}
         />

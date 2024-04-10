@@ -9,12 +9,15 @@ import { useLocale } from '../locale/LocaleContext';
 export const ImporterFrame: React.FC<{
   fileName: string;
   subtitle?: string; // @todo allow multiple crumbs
+  importAllLabel?: string;
+  importAllDisabled?: boolean;
   secondaryDisabled?: boolean;
   secondaryLabel?: string;
   nextDisabled?: boolean;
   nextLabel: string | false;
   error?: string | null;
   onSecondary?: () => void;
+  onImportAll?: () => void;
   onNext: () => void;
   onCancel?: () => void;
 }> = ({
@@ -22,9 +25,12 @@ export const ImporterFrame: React.FC<{
   subtitle,
   secondaryDisabled,
   secondaryLabel,
+  importAllLabel,
+  importAllDisabled,
   nextDisabled,
   nextLabel,
   error,
+  onImportAll,
   onSecondary,
   onNext,
   onCancel,
@@ -85,6 +91,14 @@ export const ImporterFrame: React.FC<{
         {error ? (
           <div className="CSVImporter_ImporterFrame__footerError" role="status">
             {error}
+          </div>
+        ) : null}
+
+        {importAllLabel ? (
+          <div className="CSVImporter_ImporterFrame__footerSecondary">
+            <TextButton disabled={!!importAllDisabled} onClick={onImportAll}>
+              {importAllLabel}
+            </TextButton>
           </div>
         ) : null}
 

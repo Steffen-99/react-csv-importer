@@ -37,10 +37,6 @@
   },
   "author": "Nick Matantsev <nick.matantsev@beamworks.io>",
   "license": "MIT",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": "eslint --max-warnings=0",
@@ -106,6 +102,7 @@
   },
   "dependencies": {
     "@use-gesture/react": "^10.2.11",
+ 
     "papaparse": "^5.3.0",
     "react-dropzone": "^12.1.0",
     "yarn": "^1.22.22"

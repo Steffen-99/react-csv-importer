@@ -48,7 +48,9 @@ export interface ImporterLocale {
 
   progressStep: {
     stepSubtitle: string;
+    importAllButton: string;
     uploadMoreButton: string;
+    uploadNextButton: string;
     finishButton: string;
     statusError: string;
     statusComplete: string;

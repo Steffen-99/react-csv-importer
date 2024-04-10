@@ -17,9 +17,27 @@ type SampleImporterProps = ImporterProps<{ fieldA: string }>;
 
 export const Main: Story<SampleImporterProps> = (args: SampleImporterProps) => {
   return (
-    <Importer {...args}>
-      <ImporterField name="fieldA" label="Field A" />
-      <ImporterField name="fieldB" label="Field B" optional />
+    <Importer {...args}
+      dataHandler={async (rows, {startIndex}) => {
+        console.log(rows);
+      }
+    }
+      restartable={true}>
+      <ImporterField name="start" label="Start" />
+      <ImporterField name="end" label="End" />
+      <ImporterField name="direction" label="Direction"/>
+      <ImporterField name="NFONCustomerNumber" label="NFON-customer-number"/>
+      <ImporterField name="NFONSAccount" label="NFON-S-account"/>
+      <ImporterField name="operator" label="Operator"/>
+      <ImporterField name="aNumber" label="A-number"/>
+      <ImporterField name="bNumber" label="B-number"/>
+      <ImporterField name="extension" label="Extension"/>
+      <ImporterField name="duration" label="Duration"/>
+      <ImporterField name="projectNumber" label="Project-number"/>
+      <ImporterField name="costCenter" label="Cost-center"/>
+      <ImporterField name="location" label="Location"/>
+      <ImporterField name="zone" label="Zone"/>
+      <ImporterField name="ratex" label="ratex"/>
     </Importer>
   );
 };

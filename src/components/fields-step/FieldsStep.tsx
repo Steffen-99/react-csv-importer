@@ -247,7 +247,7 @@ export const FieldsStep: React.FC<{
     onChangeRef.current({ fieldAssignments: { ...fieldAssignments } });
   }, [fieldAssignments]);
 
-  return (
+  return(
     <ImporterFrame
       fileName={fileState.file.name}
       subtitle={l10n.stepSubtitle}
