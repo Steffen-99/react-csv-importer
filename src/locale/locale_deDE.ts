@@ -56,7 +56,9 @@ export const deDE: ImporterLocale = {
     stepSubtitle: 'Importieren',
     uploadMoreButton: 'Weitere hochladen',
     finishButton: 'Abschließen',
-    statusError: 'Konnte nicht importiert werden',
+    uploadNextButton: 'Nächsten hochladen',
+    finishButton: 'Abschließen',
+    importAllButton: 'Alle hochladen',
     statusComplete: 'Fertig',
     statusPending: 'Wird importiert...',
     processedRowsLabel: 'Verarbeitete Zeilen:'
